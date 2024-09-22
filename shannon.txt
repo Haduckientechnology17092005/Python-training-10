@@ -1,0 +1,133 @@
+Chắc chắn rồi! Mình sẽ giải thích chi tiết từng phần trong mã nguồn để bạn hiểu rõ hơn về cách hoạt động của thuật toán **Shannon-Fano**.
+
+### Cấu trúc mã nguồn
+
+1. **Imports**:
+   ```python
+   from collections import Counter
+   ```
+   - Sử dụng `Counter` từ thư viện `collections` để đếm tần suất xuất hiện của từng ký tự trong thông điệp.
+
+2. **Hàm xây dựng mã Shannon-Fano**:
+   ```python
+   def shannon_fano(symbols):
+   ```
+   - Hàm này nhận vào một danh sách các ký tự cùng với tần suất của chúng.
+
+   - **Bước 1**: Kiểm tra nếu chỉ còn một ký tự:
+     ```python
+     if len(symbols) == 1:
+         return {symbols[0][0]: ""}
+     ```
+     - Nếu chỉ có một ký tự, nó sẽ nhận mã là chuỗi rỗng (bởi vì đây là ký tự duy nhất).
+
+   - **Bước 2**: Tính tổng tần suất và xác định điểm chia:
+     ```python
+     total = sum(symbol[1] for symbol in symbols)
+     acc = 0
+     split_idx = 0
+     
+     for i, symbol in enumerate(symbols):
+         acc += symbol[1]
+         if acc >= total / 2:
+             split_idx = i
+             break
+     ```
+     - `total` là tổng tần suất của tất cả các ký tự.
+     - Duyệt qua danh sách ký tự và tích lũy tần suất cho đến khi đạt khoảng một nửa tổng tần suất. Điểm chia `split_idx` sẽ giúp chia các ký tự thành hai nhóm gần bằng nhau.
+
+   - **Bước 3**: Tạo các nhóm và gọi đệ quy:
+     ```python
+     left_symbols = symbols[:split_idx + 1]
+     right_symbols = symbols[split_idx + 1:]
+     
+     left_codes = shannon_fano(left_symbols)
+     right_codes = shannon_fano(right_symbols)
+     ```
+     - Chia thành hai nhóm: `left_symbols` và `right_symbols`.
+     - Gọi hàm `shannon_fano` cho từng nhóm để tạo mã cho các ký tự.
+
+   - **Bước 4**: Gán mã nhị phân cho các ký tự:
+     ```python
+     for key in left_codes:
+         left_codes[key] = '0' + left_codes[key]
+     for key in right_codes:
+         right_codes[key] = '1' + right_codes[key]
+     ```
+     - Gán bit `0` cho các ký tự trong nhóm trái và bit `1` cho nhóm phải.
+
+   - **Bước 5**: Trả về bảng mã:
+     ```python
+     return {**left_codes, **right_codes}
+     ```
+     - Kết hợp và trả về mã cho tất cả các ký tự.
+
+3. **Hàm giải mã**:
+   ```python
+   def decode_shannon_fano(encoded_str, shannon_fano_codes):
+   ```
+   - Nhận vào chuỗi nhị phân đã mã hóa và bảng mã.
+
+   - **Bước 1**: Đảo ngược bảng mã:
+     ```python
+     reversed_codes = {v: k for k, v in shannon_fano_codes.items()}
+     ```
+     - Tạo bảng mã ngược để dễ dàng tra cứu ký tự từ mã nhị phân.
+
+   - **Bước 2**: Giải mã chuỗi nhị phân:
+     ```python
+     decoded_str = ""
+     buffer = ""
+     
+     for bit in encoded_str:
+         buffer += bit
+         if buffer in reversed_codes:
+             decoded_str += reversed_codes[buffer]
+             buffer = ""
+     ```
+     - Duyệt qua từng bit của chuỗi nhị phân, tích lũy các bit vào `buffer`.
+     - Khi `buffer` khớp với một mã trong bảng mã ngược, thêm ký tự tương ứng vào `decoded_str` và làm sạch `buffer`.
+
+4. **Hàm chính**:
+   ```python
+   def main():
+   ```
+   - Tạo thông điệp mẫu và tính tần suất ký tự:
+   ```python
+   message = "AABACDDEEEFF"
+   frequency = Counter(message)
+   symbols = sorted(frequency.items(), key=lambda x: x[1], reverse=True)
+   ```
+   - Sử dụng `Counter` để đếm và sắp xếp các ký tự theo tần suất giảm dần.
+
+   - **Bước 1**: Mã hóa bằng Shannon-Fano:
+   ```python
+   shannon_fano_codes = shannon_fano(symbols)
+   print("Bảng mã Shannon-Fano:", shannon_fano_codes)
+   ```
+   - Tạo bảng mã và in ra kết quả.
+
+   - **Bước 2**: Mã hóa thông điệp:
+   ```python
+   encoded_message = ''.join(shannon_fano_codes[char] for char in message)
+   print("Thông điệp sau khi mã hóa:", encoded_message)
+   ```
+   - Chuyển đổi thông điệp thành chuỗi nhị phân dựa trên bảng mã.
+
+   - **Bước 3**: Giải mã thông điệp:
+   ```python
+   decoded_message = decode_shannon_fano(encoded_message, shannon_fano_codes)
+   print("Thông điệp sau khi giải mã:", decoded_message)
+   ```
+   - Giải mã chuỗi nhị phân trở lại ký tự ban đầu và in ra kết quả.
+
+### Kết quả khi chạy chương trình:
+Khi bạn chạy mã này, bạn sẽ thấy:
+- Bảng mã cho từng ký tự.
+- Chuỗi nhị phân đã mã hóa.
+- Thông điệp đã được giải mã về lại ký tự ban đầu.
+
+### Tóm tắt
+Mã nguồn thực hiện quy trình mã hóa và giải mã dựa trên thuật toán Shannon-Fano. Bằng cách sử dụng tần suất xuất hiện của các ký tự, nó tạo ra mã nhị phân hiệu quả, giúp tiết kiệm không gian lưu trữ trong thông điệp.
+
+Nếu bạn có bất kỳ câu hỏi nào thêm về từng bước hoặc muốn làm rõ một phần nào đó, hãy cho mình biết!

@@ -1,0 +1,60 @@
+Để biến một xâu \( X \) thành một xâu đối xứng (palindrome) bằng cách thêm ít ký tự nhất, bạn có thể làm theo các bước sau:
+
+### 1. Tìm xâu con đối xứng dài nhất (LPS)
+
+Sử dụng thuật toán tìm xâu con đối xứng dài nhất (Longest Palindromic Subsequence - LPS) để xác định độ dài của xâu con đối xứng dài nhất trong \( X \).
+
+### 2. Tính số ký tự cần thêm
+
+Số ký tự cần thêm để biến xâu thành đối xứng được tính bằng:
+
+\[
+\text{Số ký tự cần thêm} = \text{Độ dài của } X - \text{Độ dài của LPS}
+\]
+
+### 3. Cài đặt trong Python
+
+Dưới đây là một đoạn mã Python để thực hiện điều này:
+
+```python
+def longest_palindromic_subsequence(s):
+    n = len(s)
+    # Tạo bảng 2D để lưu độ dài LPS
+    dp = [[0] * n for _ in range(n)]
+    
+    # Các ký tự đơn lẻ là palindrome có độ dài 1
+    for i in range(n):
+        dp[i][i] = 1
+    
+    # Điền bảng DP
+    for length in range(2, n + 1):  # length từ 2 đến n
+        for i in range(n - length + 1):
+            j = i + length - 1
+            if s[i] == s[j]:
+                dp[i][j] = dp[i + 1][j - 1] + 2
+            else:
+                dp[i][j] = max(dp[i + 1][j], dp[i][j - 1])
+    
+    return dp[0][n - 1]  # Độ dài LPS
+
+def min_insertions_to_palindrome(s):
+    lps_length = longest_palindromic_subsequence(s)
+    return len(s) - lps_length
+
+# Ví dụ sử dụng
+s = "abca"
+print("Số ký tự cần thêm:", min_insertions_to_palindrome(s))
+```
+
+### Giải thích mã:
+
+1. **Hàm `longest_palindromic_subsequence`**:
+   - Sử dụng bảng DP để lưu độ dài của LPS cho các đoạn con của xâu.
+   - Nếu hai ký tự ở đầu và cuối giống nhau, ta cộng 2 vào độ dài LPS của đoạn con bên trong.
+   - Nếu không, lấy độ dài lớn nhất giữa hai đoạn con.
+
+2. **Hàm `min_insertions_to_palindrome`**:
+   - Gọi hàm tìm LPS và tính số ký tự cần thêm để tạo thành xâu đối xứng.
+
+### Kết quả:
+Chương trình sẽ in ra số ký tự cần thêm để biến xâu ban đầu thành xâu đối xứng. Bạn có thể thay đổi xâu \( s \) trong ví dụ để thử nghiệm với các xâu khác nhau. Nếu bạn có câu hỏi hoặc cần thêm thông tin, hãy cho mình biết!

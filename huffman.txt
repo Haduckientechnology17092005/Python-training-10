@@ -1,0 +1,149 @@
+Chắc chắn rồi! Dưới đây là giải thích chi tiết từng bước của thuật toán mã hóa và giải mã Huffman.
+
+### 1. Lớp `HuffmanNode`
+
+```python
+class HuffmanNode:
+    def __init__(self, char, freq):
+        self.char = char  # Ký tự
+        self.freq = freq  # Tần suất của ký tự
+        self.left = None  # Con trỏ sang nút trái
+        self.right = None  # Con trỏ sang nút phải
+
+    def __lt__(self, other):
+        return self.freq < other.freq  # So sánh dựa trên tần suất
+```
+
+- **Mục đích**: Tạo cấu trúc cho mỗi nút trong cây Huffman.
+- **Thuộc tính**:
+  - `char`: Ký tự mà nút đại diện.
+  - `freq`: Tần suất xuất hiện của ký tự.
+  - `left` và `right`: Các con trỏ tới các nút con trái và phải (sẽ được sử dụng để xây dựng cây).
+
+### 2. Hàm `build_huffman_tree`
+
+```python
+def build_huffman_tree(frequencies):
+    heap = [HuffmanNode(char, freq) for char, freq in frequencies.items()]
+    heapq.heapify(heap)  # Chuyển danh sách thành heap
+
+    while len(heap) > 1:
+        left = heapq.heappop(heap)  # Lấy nút có tần suất nhỏ nhất
+        right = heapq.heappop(heap)  # Lấy nút tiếp theo nhỏ nhất
+        merged = HuffmanNode(None, left.freq + right.freq)  # Tạo nút cha
+        merged.left = left  # Gán con trái
+        merged.right = right  # Gán con phải
+        heapq.heappush(heap, merged)  # Đưa nút cha vào heap
+
+    return heap[0]  # Cây Huffman gốc
+```
+
+- **Mục đích**: Xây dựng cây Huffman từ tần suất ký tự.
+- **Các bước**:
+  1. **Khởi tạo Heap**: Tạo danh sách các nút từ tần suất của ký tự.
+  2. **Heapify**: Chuyển danh sách thành heap để có thể dễ dàng lấy nút có tần suất nhỏ nhất.
+  3. **Xây dựng cây**: 
+     - Trong vòng lặp, lấy hai nút nhỏ nhất (`left` và `right`).
+     - Tạo nút cha (`merged`) có tần suất bằng tổng tần suất của hai nút con.
+     - Gán `left` và `right` cho nút cha.
+     - Đưa nút cha vào heap.
+  4. **Trả về cây gốc**: Khi chỉ còn một nút trong heap, đó là gốc của cây Huffman.
+
+### 3. Hàm `create_huffman_codes`
+
+```python
+def create_huffman_codes(node, prefix="", codebook={}):
+    if node.char is not None:
+        codebook[node.char] = prefix  # Gán mã cho ký tự
+    else:
+        create_huffman_codes(node.left, prefix + "0", codebook)  # Đi trái
+        create_huffman_codes(node.right, prefix + "1", codebook)  # Đi phải
+    return codebook
+```
+
+- **Mục đích**: Tạo bảng mã cho từng ký tự từ cây Huffman.
+- **Các bước**:
+  1. **Kiểm tra nút lá**: Nếu nút hiện tại là nút lá (có ký tự), gán mã cho ký tự đó.
+  2. **Duyệt cây**:
+     - Nếu không phải là nút lá, gọi đệ quy cho nút trái (thêm `0` vào mã) và nút phải (thêm `1` vào mã).
+  3. **Trả về bảng mã**: Kết quả là một từ điển (`codebook`) chứa mã cho từng ký tự.
+
+### 4. Hàm `huffman_encode`
+
+```python
+def huffman_encode(message):
+    frequencies = defaultdict(int)  # Đếm tần suất ký tự
+    for char in message:
+        frequencies[char] += 1
+
+    huffman_tree = build_huffman_tree(frequencies)  # Xây dựng cây
+    huffman_codes = create_huffman_codes(huffman_tree)  # Tạo bảng mã
+    
+    encoded_message = ''.join(huffman_codes[char] for char in message)  # Mã hóa thông điệp
+    return encoded_message, huffman_codes, huffman_tree
+```
+
+- **Mục đích**: Mã hóa thông điệp đầu vào.
+- **Các bước**:
+  1. **Đếm tần suất**: Sử dụng `defaultdict` để đếm số lần xuất hiện của mỗi ký tự trong thông điệp.
+  2. **Xây dựng cây Huffman**: Gọi hàm `build_huffman_tree` để xây dựng cây từ tần suất.
+  3. **Tạo mã**: Gọi hàm `create_huffman_codes` để tạo bảng mã từ cây.
+  4. **Mã hóa**: Mã hóa thông điệp bằng cách thay thế từng ký tự bằng mã tương ứng từ bảng mã.
+  5. **Trả về kết quả**: Trả về chuỗi mã hóa, bảng mã và cây Huffman.
+
+### 5. Hàm `huffman_decode`
+
+```python
+def huffman_decode(encoded_message, huffman_tree):
+    decoded_message = ""
+    current_node = huffman_tree  # Bắt đầu từ gốc cây
+
+    for bit in encoded_message:
+        current_node = current_node.left if bit == '0' else current_node.right  # Duyệt cây
+        if current_node.char is not None:  # Nếu đến nút lá
+            decoded_message += current_node.char  # Thêm ký tự vào kết quả
+            current_node = huffman_tree  # Quay lại gốc cây
+
+    return decoded_message
+```
+
+- **Mục đích**: Giải mã thông điệp đã mã hóa.
+- **Các bước**:
+  1. **Bắt đầu từ gốc cây**: Khởi tạo `current_node` là gốc của cây Huffman.
+  2. **Duyệt chuỗi mã**: Đối với mỗi bit trong chuỗi đã mã hóa:
+     - Đi trái nếu bit là `0`, đi phải nếu bit là `1`.
+     - Khi đến nút lá (có ký tự), thêm ký tự vào thông điệp đã giải mã.
+     - Quay lại gốc cây để tiếp tục giải mã.
+  3. **Trả về thông điệp đã giải mã**: Kết quả cuối cùng là thông điệp gốc.
+
+### 6. Hàm chính `main`
+
+```python
+def main():
+    message = "AABACDDEEEFF"  # Thông điệp mẫu
+    
+    # Mã hóa
+    encoded_message, huffman_codes, huffman_tree = huffman_encode(message)
+    print("Bảng mã Huffman:", huffman_codes)  # In bảng mã
+    print("Thông điệp sau khi mã hóa:", encoded_message)  # In thông điệp mã hóa
+
+    # Giải mã
+    decoded_message = huffman_decode(encoded_message, huffman_tree)  # Giải mã thông điệp
+    print("Thông điệp sau khi giải mã:", decoded_message)  # In thông điệp giải mã
+
+# Chạy chương trình
+main()
+```
+
+- **Mục đích**: Thực hiện toàn bộ quy trình mã hóa và giải mã.
+- **Các bước**:
+  1. **Khởi tạo thông điệp mẫu**: Đặt một thông điệp để mã hóa.
+  2. **Mã hóa**: Gọi hàm `huffman_encode` để mã hóa thông điệp.
+  3. **In kết quả**: Hiển thị bảng mã Huffman và thông điệp đã mã hóa.
+  4. **Giải mã**: Gọi hàm `huffman_decode` để giải mã thông điệp và hiển thị kết quả.
+
+### Tóm tắt
+- Thuật toán Huffman giúp nén dữ liệu bằng cách sử dụng cây Huffman để tạo ra mã nhị phân ngắn nhất cho các ký tự xuất hiện nhiều hơn trong thông điệp.
+- Quy trình bao gồm việc xây dựng cây từ tần suất ký tự, tạo mã cho từng ký tự, mã hóa thông điệp và cuối cùng là giải mã thông điệp đã mã hóa.
+
+Nếu bạn cần giải thích thêm về bất kỳ phần nào hoặc có câu hỏi khác, hãy cho mình biết!
