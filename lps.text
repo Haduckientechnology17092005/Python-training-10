@@ -1,24 +1,10 @@
-Để biến một xâu \( X \) thành một xâu đối xứng (palindrome) bằng cách thêm ít ký tự nhất, bạn có thể làm theo các bước sau:
+Chắc chắn rồi! Hãy cùng xem chi tiết hàm `longest_palindromic_subsequence` để hiểu cách tìm xâu con đối xứng dài nhất trong một xâu cho trước.
 
-### 1. Tìm xâu con đối xứng dài nhất (LPS)
-
-Sử dụng thuật toán tìm xâu con đối xứng dài nhất (Longest Palindromic Subsequence - LPS) để xác định độ dài của xâu con đối xứng dài nhất trong \( X \).
-
-### 2. Tính số ký tự cần thêm
-
-Số ký tự cần thêm để biến xâu thành đối xứng được tính bằng:
-
-\[
-\text{Số ký tự cần thêm} = \text{Độ dài của } X - \text{Độ dài của LPS}
-\]
-
-### 3. Cài đặt trong Python
-
-Dưới đây là một đoạn mã Python để thực hiện điều này:
+### Hàm `longest_palindromic_subsequence`
 
 ```python
 def longest_palindromic_subsequence(s):
-    n = len(s)
+    n = len(s)  # Độ dài của xâu
     # Tạo bảng 2D để lưu độ dài LPS
     dp = [[0] * n for _ in range(n)]
     
@@ -36,25 +22,59 @@ def longest_palindromic_subsequence(s):
                 dp[i][j] = max(dp[i + 1][j], dp[i][j - 1])
     
     return dp[0][n - 1]  # Độ dài LPS
-
-def min_insertions_to_palindrome(s):
-    lps_length = longest_palindromic_subsequence(s)
-    return len(s) - lps_length
-
-# Ví dụ sử dụng
-s = "abca"
-print("Số ký tự cần thêm:", min_insertions_to_palindrome(s))
 ```
 
-### Giải thích mã:
+### Giải thích từng phần
 
-1. **Hàm `longest_palindromic_subsequence`**:
-   - Sử dụng bảng DP để lưu độ dài của LPS cho các đoạn con của xâu.
-   - Nếu hai ký tự ở đầu và cuối giống nhau, ta cộng 2 vào độ dài LPS của đoạn con bên trong.
-   - Nếu không, lấy độ dài lớn nhất giữa hai đoạn con.
+1. **Khởi tạo độ dài xâu**:
+   ```python
+   n = len(s)
+   ```
+   - Biến `n` lưu độ dài của xâu \( s \).
 
-2. **Hàm `min_insertions_to_palindrome`**:
-   - Gọi hàm tìm LPS và tính số ký tự cần thêm để tạo thành xâu đối xứng.
+2. **Tạo bảng DP**:
+   ```python
+   dp = [[0] * n for _ in range(n)]
+   ```
+   - Tạo một bảng hai chiều `dp` với kích thước \( n \times n \), khởi tạo tất cả các giá trị bằng 0. Bảng này sẽ được sử dụng để lưu độ dài của xâu con đối xứng dài nhất (LPS) cho từng đoạn con của \( s \).
 
-### Kết quả:
-Chương trình sẽ in ra số ký tự cần thêm để biến xâu ban đầu thành xâu đối xứng. Bạn có thể thay đổi xâu \( s \) trong ví dụ để thử nghiệm với các xâu khác nhau. Nếu bạn có câu hỏi hoặc cần thêm thông tin, hãy cho mình biết!
+3. **Điền giá trị cho các ký tự đơn lẻ**:
+   ```python
+   for i in range(n):
+       dp[i][i] = 1
+   ```
+   - Các ký tự đơn lẻ (ví dụ: \( s[i] \)) là những xâu đối xứng có độ dài bằng 1, vì vậy ta gán giá trị 1 cho các ô `dp[i][i]`.
+
+4. **Điền bảng DP cho các đoạn con dài hơn**:
+   ```python
+   for length in range(2, n + 1):  # length từ 2 đến n
+   ```
+   - Sử dụng vòng lặp `length` để xét các đoạn con có độ dài từ 2 đến \( n \).
+   - Vòng lặp trong sẽ duyệt các đoạn con từ vị trí \( i \) đến \( j \):
+   ```python
+   for i in range(n - length + 1):
+       j = i + length - 1
+   ```
+
+5. **Kiểm tra các ký tự đầu và cuối**:
+   ```python
+   if s[i] == s[j]:
+       dp[i][j] = dp[i + 1][j - 1] + 2
+   else:
+       dp[i][j] = max(dp[i + 1][j], dp[i][j - 1])
+   ```
+   - Nếu ký tự đầu \( s[i] \) và ký tự cuối \( s[j] \) giống nhau:
+     - Thì độ dài của LPS trong đoạn con từ \( i \) đến \( j \) sẽ là độ dài LPS của đoạn con bên trong (từ \( i + 1 \) đến \( j - 1 \)) cộng thêm 2 (do hai ký tự đầu và cuối giống nhau).
+   - Nếu hai ký tự không giống nhau:
+     - LPS sẽ là độ dài lớn nhất giữa hai lựa chọn: bỏ ký tự đầu (tìm LPS trong đoạn từ \( i + 1 \) đến \( j \)) hoặc bỏ ký tự cuối (tìm LPS trong đoạn từ \( i \) đến \( j - 1 \)).
+
+6. **Trả về độ dài LPS**:
+   ```python
+   return dp[0][n - 1]  # Độ dài LPS
+   ```
+   - Cuối cùng, hàm trả về giá trị ở ô `dp[0][n-1]`, đại diện cho độ dài của xâu con đối xứng dài nhất cho toàn bộ xâu \( s \).
+
+### Tóm tắt
+Hàm `longest_palindromic_subsequence` sử dụng phương pháp quy hoạch động để tìm độ dài của xâu con đối xứng dài nhất trong xâu đầu vào. Nó xây dựng bảng `dp` để lưu trữ kết quả cho từng đoạn con, từ đó giúp tiết kiệm thời gian tính toán cho các đoạn con lặp lại.
+
+Nếu bạn cần thêm thông tin hoặc có câu hỏi nào khác, hãy cho mình biết!
